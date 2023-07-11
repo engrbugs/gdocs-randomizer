@@ -9,44 +9,36 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
+###########################################################
 SCOPES = ['https://www.googleapis.com/auth/documents']
+DOCUMENT_ID = '1-vH-4M19e_X4ArdJ5UzZXgGDLIyEosEuM7WiWdAnQ3s'
+###########################################################
 
-# The ID of a sample document.
-DOCUMENT_ID = '16l29CPKTsUBgNVwVgi399Bl0hWm0iqls47mcrp1l_FM'
-
-
-def main():
-    """Shows basic usage of the Docs API.
-    Prints the title of a sample document.
-    """
+def logIn():
+    """Logs in and returns the credentials."""
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'secret/credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file('secret/credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
+    return creds
 
+def readTitle(creds):
+    """Reads and prints the title of the document."""
     try:
         service = build('docs', 'v1', credentials=creds)
-
-        # Retrieve the documents contents from the Docs service.
         document = service.documents().get(documentId=DOCUMENT_ID).execute()
-
         print('The title of the document is: {}'.format(document.get('title')))
     except HttpError as err:
         print(err)
 
 
 if __name__ == '__main__':
-    main()
+    creds = logIn()
+    readTitle(creds)
